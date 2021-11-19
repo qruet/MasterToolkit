@@ -3,7 +3,7 @@ MasterToolkit
 A repository with a collection of my personal APIs and frameworks to 
 expedite the development process without compromise in quality.
 
-###// TODO
+### // TODO
 > **Commmand Registry** [❌]
   > > Handles all command aliases and their corresponding arguments. 
 >     Has an easy-to-use API for ease of manageability.
