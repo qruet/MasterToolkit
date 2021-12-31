@@ -1,5 +1,6 @@
 package dev.qruet.toolkit.tasky;
 
+import dev.qruet.toolkit.ToolKit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Consumer;
@@ -24,14 +25,6 @@ import java.lang.ref.WeakReference;
  */
 public final class Tasky {
 
-    /// MARK – Make sure you set the plugin. Hopefully you read this or notice you need to.
-
-    private static WeakReference<Plugin> plugin;
-
-    public static void setPlugin(final Plugin plugin) {
-        Tasky.plugin = new WeakReference<>(plugin);
-    }
-
     public interface Response<T> {
         void onCompletion(T t);
     }
@@ -51,7 +44,7 @@ public final class Tasky {
             }
 
         };
-        runnable.runTaskAsynchronously(plugin.get());
+        runnable.runTaskAsynchronously(ToolKit.getPlugin());
         return runnable;
     }
 
@@ -62,7 +55,7 @@ public final class Tasky {
                 block.accept(this);
             }
         };
-        runnable.runTask(plugin.get());
+        runnable.runTask(ToolKit.getPlugin());
         return runnable;
     }
 
@@ -73,7 +66,7 @@ public final class Tasky {
                 block.accept(this);
             }
         };
-        runnable.runTaskLaterAsynchronously(plugin.get(), delay);
+        runnable.runTaskLaterAsynchronously(ToolKit.getPlugin(), delay);
         return runnable;
     }
 
@@ -84,7 +77,7 @@ public final class Tasky {
                 block.accept(this);
             }
         };
-        runnable.runTaskLater(plugin.get(), delay);
+        runnable.runTaskLater(ToolKit.getPlugin(), delay);
         return runnable;
     }
 
@@ -95,7 +88,7 @@ public final class Tasky {
                 block.accept(this);
             }
         };
-        runnable.runTaskTimer(plugin.get(), delay, period);
+        runnable.runTaskTimer(ToolKit.getPlugin(), delay, period);
         return runnable;
     }
 
@@ -106,7 +99,7 @@ public final class Tasky {
                 block.accept(this);
             }
         };
-        runnable.runTaskTimerAsynchronously(plugin.get(), delay, period);
+        runnable.runTaskTimerAsynchronously(ToolKit.getPlugin(), delay, period);
         return runnable;
     }
 }

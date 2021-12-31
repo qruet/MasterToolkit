@@ -255,6 +255,12 @@ public class Reflections {
                 .collect(Collectors.toList());
     }
 
+    public static void loadClass(Class<?> clazz) {
+        if(clazz == null) {
+            throw new UnsupportedOperationException("Class is null.");
+        }
+    }
+
     private static Class<?> getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."
