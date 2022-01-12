@@ -3,11 +3,8 @@ package dev.qruet.toolkit.utility;
 import org.bukkit.Bukkit;
 
 import java.io.*;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
@@ -24,25 +21,10 @@ public class Reflections {
         return CORRESPONDING_TYPES.containsKey(clazz) ? CORRESPONDING_TYPES.get(clazz) : clazz;
     }
 
-    private static final VarHandle MODIFIERS;
     private static final ClassLoader LOADER;
 
     static {
-        try {
-            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Field.class, MethodHandles.lookup());
-            MODIFIERS = lookup.findVarHandle(Field.class, "modifiers", int.class);
-        } catch (IllegalAccessException | NoSuchFieldException ex) {
-            throw new RuntimeException(ex);
-        }
-
         LOADER = Thread.currentThread().getContextClassLoader();
-    }
-
-    public static void makeNonFinal(Field field) {
-        int mods = field.getModifiers();
-        if (Modifier.isFinal(mods)) {
-            MODIFIERS.set(field, mods & ~Modifier.FINAL);
-        }
     }
 
     private static Class<?>[] toPrimitiveTypeArray(Class<?>[] classes) {
@@ -176,7 +158,6 @@ public class Reflections {
         try {
             Field field = clazz.getDeclaredField(name);
             field.setAccessible(true);
-            makeNonFinal(field);
             return field;
         } catch (Exception e) {
             e.printStackTrace();
@@ -255,8 +236,17 @@ public class Reflections {
                 .collect(Collectors.toList());
     }
 
+    public static <T> List<Class<T>> findAllClassesInPackage(String packageName, Class<T> type, boolean inclusive) {
+        List<Class<T>> lo = findAllClassesInPackage(packageName)
+                .stream().filter(type::isAssignableFrom)
+                .collect(Collectors.toList());
+        if(!inclusive)
+            lo.remove(type);
+        return lo;
+    }
+
     public static void loadClass(Class<?> clazz) {
-        if(clazz == null) {
+        if (clazz == null) {
             throw new UnsupportedOperationException("Class is null.");
         }
     }

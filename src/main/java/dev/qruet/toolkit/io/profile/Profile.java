@@ -29,15 +29,15 @@ public abstract class Profile implements IOProfile {
 
         switch (priority) {
             case HIGH -> {
-                ToolKit.getPlugin().getLogger().severe(message);
+                ToolKit.getLogger().severe(message);
                 break;
             }
             case MEDIUM -> {
-                ToolKit.getPlugin().getLogger().warning(message);
+                ToolKit.getLogger().warning(message);
                 break;
             }
             case LOW -> {
-                ToolKit.getPlugin().getLogger().info(message);
+                ToolKit.getLogger().info(message);
                 break;
             }
         }
