@@ -236,11 +236,11 @@ public class Reflections {
                 .collect(Collectors.toList());
     }
 
-    public static <T> List<Class<T>> findAllClassesInPackage(String packageName, Class<T> type, boolean inclusive) {
+    public static <T> List<Class<T>> findAllClassesInPackage(String packageName, Class<T> type, boolean inclusiveType) {
         List<Class<T>> lo = findAllClassesInPackage(packageName)
                 .stream().filter(type::isAssignableFrom)
                 .collect(Collectors.toList());
-        if(!inclusive)
+        if(!inclusiveType)
             lo.remove(type);
         return lo;
     }
