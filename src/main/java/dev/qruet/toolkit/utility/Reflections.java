@@ -3,11 +3,16 @@ package dev.qruet.toolkit.utility;
 import org.bukkit.Bukkit;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -15,16 +20,26 @@ import java.util.stream.Collectors;
  */
 public class Reflections {
 
-    private static final Map<Class<?>, Class<?>> CORRESPONDING_TYPES = new HashMap<>();
 
-    private static Class<?> getPrimitiveType(Class<?> clazz) {
-        return CORRESPONDING_TYPES.containsKey(clazz) ? CORRESPONDING_TYPES.get(clazz) : clazz;
-    }
+    private static final Map<Class<?>, Class<?>> CORRESPONDING_TYPES = new HashMap<>();
 
     private static final ClassLoader LOADER;
 
     static {
         LOADER = Thread.currentThread().getContextClassLoader();
+    }
+
+    /**
+     * Legacy (versions pre 1.17)
+     *
+     * @return Is server running legacy NMS
+     */
+    public static boolean isLegacy() {
+        return Reflections.getIntVersion() < 1170;
+    }
+
+    private static Class<?> getPrimitiveType(Class<?> clazz) {
+        return CORRESPONDING_TYPES.containsKey(clazz) ? CORRESPONDING_TYPES.get(clazz) : clazz;
     }
 
     private static Class<?>[] toPrimitiveTypeArray(Class<?>[] classes) {
@@ -113,6 +128,23 @@ public class Reflections {
         return name.substring(name.lastIndexOf('.') + 1);
     }
 
+    public static int getIntVersion() {
+        Pattern p = Pattern.compile("\\d+");
+        Matcher m = p.matcher(getVersion());
+        StringBuilder strInt = new StringBuilder();
+        while (m.find()) {
+            strInt.append(m.group());
+        }
+
+        int version = -1;
+        try {
+            version = Integer.parseInt(strInt.toString());
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return version;
+    }
+
     /**
      * Converts string name of class to Class object
      *
@@ -163,6 +195,40 @@ public class Reflections {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Object getValue(Object instance, String name) {
+        Object value = null;
+        try {
+            Field field = instance.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            value = field.get(instance);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
+
+    public static <T> T getValue(Object instance, FieldQuery<T> query) {
+        T value = null;
+        try {
+            Field field = instance.getClass().getDeclaredField(query.fieldName);
+            field.setAccessible(true);
+            value = (T) field.get(instance);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
+
+    public static <T> void setValue(Object instance, String name, T value) {
+        try {
+            Field field = instance.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -236,21 +302,6 @@ public class Reflections {
                 .collect(Collectors.toList());
     }
 
-    public static <T> List<Class<T>> findAllClassesInPackage(String packageName, Class<T> type, boolean inclusiveType) {
-        List<Class<T>> lo = findAllClassesInPackage(packageName)
-                .stream().filter(type::isAssignableFrom)
-                .collect(Collectors.toList());
-        if(!inclusiveType)
-            lo.remove(type);
-        return lo;
-    }
-
-    public static void loadClass(Class<?> clazz) {
-        if (clazz == null) {
-            throw new UnsupportedOperationException("Class is null.");
-        }
-    }
-
     private static Class<?> getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."
@@ -258,5 +309,15 @@ public class Reflections {
         } catch (ClassNotFoundException e) {
             return null;
         }
+    }
+
+    public static class FieldQuery<T> {
+
+        final String fieldName;
+
+        public FieldQuery(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
     }
 }
