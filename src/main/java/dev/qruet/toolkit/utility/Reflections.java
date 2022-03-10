@@ -3,11 +3,10 @@ package dev.qruet.toolkit.utility;
 import org.bukkit.Bukkit;
 
 import java.io.*;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
@@ -21,7 +20,15 @@ import java.util.stream.Collectors;
 public class Reflections {
 
 
-    private static final Map<Class<?>, Class<?>> CORRESPONDING_TYPES = new HashMap<>();
+    private static final Map<Class<?>, Class<?>> CORRESPONDING_TYPES = new HashMap<Class<?>, Class<?>>() {{
+        put(Integer.class, int.class);
+        put(Double.class, double.class);
+        put(Float.class, float.class);
+        put(Short.class, short.class);
+        put(Long.class, long.class);
+        put(Byte.class, byte.class);
+        put(Boolean.class, boolean.class);
+    }};
 
     private static final ClassLoader LOADER;
 
@@ -39,10 +46,10 @@ public class Reflections {
     }
 
     private static Class<?> getPrimitiveType(Class<?> clazz) {
-        return CORRESPONDING_TYPES.containsKey(clazz) ? CORRESPONDING_TYPES.get(clazz) : clazz;
+        return CORRESPONDING_TYPES.getOrDefault(clazz, clazz);
     }
 
-    private static Class<?>[] toPrimitiveTypeArray(Class<?>[] classes) {
+    private static Class<?>[] toPrimitiveTypeArray(Class<?>... classes) {
         int a = classes != null ? classes.length : 0;
         Class<?>[] types = new Class<?>[a];
         for (int i = 0; i < a; i++) {
@@ -51,11 +58,18 @@ public class Reflections {
         return types;
     }
 
+    private static Class<?>[] toPrimitiveTypeArray(Object... values) {
+        Class<?>[] classes = new Class[values.length];
+        for(int i = 0; i < values.length; i++)
+            classes[i] = values[i].getClass();
+        return toPrimitiveTypeArray(classes);
+    }
+
     private static boolean equalsTypeArray(Class<?>[] a, Class<?>[] o) {
         if (a.length != o.length)
             return false;
         for (int i = 0; i < a.length; i++)
-            if (!a[i].equals(o[i]) && !a[i].isAssignableFrom(o[i]))
+            if(!(a[i].equals(o[i]) || a[i].isAssignableFrom(o[i]) || o[i].isAssignableFrom(a[i])))
                 return false;
         return true;
     }
@@ -93,7 +107,7 @@ public class Reflections {
      */
     public static Object invokeMethodWithArgs(String method, Object obj, Object... args) {
         try {
-            return getMethod(method, obj.getClass()).invoke(obj, args);
+            return getMethod(method, obj.getClass(), args).invoke(obj, args);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -108,7 +122,7 @@ public class Reflections {
      * @param paramTypes Parameters the class may have
      * @return Instance of method
      */
-    public static Method getMethod(String name, Class<?> clazz, Class<?>... paramTypes) {
+    public static Method getMethod(String name, Class<?> clazz, Object... paramTypes) {
         Class<?>[] t = toPrimitiveTypeArray(paramTypes);
         for (Method m : clazz.getMethods()) {
             Class<?>[] types = toPrimitiveTypeArray(m.getParameterTypes());
@@ -116,6 +130,35 @@ public class Reflections {
                 return m;
         }
         return null;
+    }
+
+    /**
+     * Locates the associated constructor from the given parameters
+     * and returns an instance of the given class from the given
+     * parameters.
+     * @param clazz Class to instantiate
+     * @param params Constructor parameter values
+     * @return Instance of given class {@param clazz}
+     */
+    public static Object instantiate(Class<?> clazz, Object... params) {
+        Class<?>[] types = toPrimitiveTypeArray(params);
+        try {
+            Constructor<?> constructor = null;
+            for(Constructor<?> construct : clazz.getDeclaredConstructors()) {
+                if(construct.getParameterCount() != types.length)
+                    continue;
+                Class<?>[] t = construct.getParameterTypes();
+                if(equalsTypeArray(t, types)) {
+                    constructor = construct;
+                    break;
+                }
+            }
+
+            return constructor.newInstance(params);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NullPointerException e) {
+            System.err.println("Failed to instantiate " + clazz.getName() + " with " + Arrays.toString(types));
+            return null;
+        }
     }
 
     /**
@@ -278,7 +321,7 @@ public class Reflections {
                     if (dir.listFiles() != null) {
                         for (final File file : dir.listFiles()) {
                             if (file.isDirectory()) {
-                                packageName = !packageName.isBlank() ? (packageName + '.' + file.getName()) : file.getName();
+                                packageName = !packageName.isEmpty() ? (packageName + '.' + file.getName()) : file.getName();
                                 f1 = ret.add(packageName);
                             }
                         }
