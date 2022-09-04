@@ -11,13 +11,66 @@
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
+        <spigot.version>1.19.2</spigot.version>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
+                <version>1.2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-obf</id>
+                        <configuration>
+                            <srgIn>org.spigotmc:minecraft-server:${spigot.version}-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+                            <reverse>true</reverse>
+                            <remappedDependencies>
+                                org.spigotmc:spigot:${spigot.version}-R0.1-SNAPSHOT:jar:remapped-mojang
+                            </remappedDependencies>
+                            <remappedArtifactAttached>true</remappedArtifactAttached>
+                            <remappedClassifierName>remapped-obf</remappedClassifierName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-spigot</id>
+                        <configuration>
+                            <inputFile>
+                                ${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar
+                            </inputFile>
+                            <srgIn>org.spigotmc:minecraft-server:${spigot.version}-R0.1-SNAPSHOT:csrg:maps-spigot
+                            </srgIn>
+                            <remappedDependencies>org.spigotmc:spigot:${spigot.version}-R0.1-SNAPSHOT:jar:remapped-obf
+                            </remappedDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper</artifactId>
+            <version>${spigot.version}-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${src.paper}/paper-server-${spigot.version}-R0.1-SNAPSHOT-mojang-mapped.jar</systemPath>
+            <classifier>remapped-mojang</classifier>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <version>${spigot.version}-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
