@@ -1,6 +1,9 @@
 package dev.qruet.toolkit.lang;
 
+import net.minecraft.core.BlockPos;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 
 public class T {
 
@@ -16,6 +19,18 @@ public class T {
 
     public static String COLOR(String message, boolean center) {
         return center ? CENTER(COLOR(message)) : COLOR(message);
+    }
+
+    public static String TO_STRING(Object obj) {
+        if (obj instanceof Block block)
+            return "{[" + block.getX() + ", " + block.getY() + ", " + block.getZ() + "], " + block.getType().name() + "}";
+        if (obj instanceof Location loc) {
+            return "{[" + loc.getX() + ", " + loc.getY() + ", " + loc.getZ() + "]}";
+        }
+        if (obj instanceof BlockPos pos) {
+            return "{[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]}";
+        }
+        return obj.toString();
     }
 
     public static String COLOR(String message, int center_px) {

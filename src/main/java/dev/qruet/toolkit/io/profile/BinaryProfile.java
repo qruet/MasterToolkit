@@ -1,18 +1,14 @@
 package dev.qruet.toolkit.io.profile;
 
-import dev.qruet.toolkit.io.Deserializer;
-import dev.qruet.toolkit.io.IOProfile;
 import dev.qruet.toolkit.io.Serializable;
-import dev.qruet.toolkit.io.Serializer;
 
 import java.io.*;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class BinaryProfile extends Profile implements Serializer, Deserializer {
+public class BinaryProfile extends Profile {
 
     protected BinaryProfile(String file_path, String default_extension) {
         super(file_path, default_extension);
@@ -56,9 +52,9 @@ public class BinaryProfile extends Profile implements Serializer, Deserializer {
         return true;
     }
 
-    public boolean serialize(Serializable serializable) {
+    public boolean serialize(String fileName, Serializable serializable, boolean append) {
         try {
-            OutputStream out = new FileOutputStream(serializable.getIOPath(), false);
+            OutputStream out = new FileOutputStream(new File(dir, fileName + "." + ext), append);
             out.write(serializable.toByteStream());
         } catch (IOException e) {
             e.printStackTrace();

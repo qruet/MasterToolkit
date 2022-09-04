@@ -1,7 +1,7 @@
 package dev.qruet.toolkit.io.profile;
 
 import dev.qruet.toolkit.io.IOProfile;
-import dev.qruet.toolkit.utility.Reflections;
+import dev.qruet.toolkit.utility.reflection.Reflections;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -15,12 +15,13 @@ public class ProfileLibrary {
 
     static {
         // populate
-        Reflections.findAllClassesInPackage(ProfileLibrary.class.getPackageName()).stream().filter(c ->
-                Profile.class.isAssignableFrom(c)).forEach(c -> {
-            Constructor<IOProfile> construct = c.getDeclaredConstructors()[0];
-            construct.setAccessible(true);
-            MAP.put(c.getSimpleName().replaceAll("Library", "").toUpperCase(Locale.ROOT), construct);
-        });
+        try {
+            for (Class<IOProfile> clazz : Reflections.findAllClassesInPackage(ProfileLibrary.class.getPackageName(), IOProfile.class, false)) {
+                MAP.put(clazz.getSimpleName().replaceAll("Profile", "").toUpperCase(Locale.ROOT), clazz.getDeclaredConstructor(String.class, String.class));
+            }
+        } catch (NoSuchMethodException | SecurityException e) {
+            e.printStackTrace();
+        }
     }
 
     public static IOProfile buildProfile(String profileName, Object... params) {
@@ -28,6 +29,7 @@ public class ProfileLibrary {
         if (construct == null)
             return null;
 
+        construct.setAccessible(true);
         IOProfile profile = null;
         try {
             profile = construct.newInstance(params);

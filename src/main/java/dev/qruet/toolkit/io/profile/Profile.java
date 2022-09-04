@@ -4,6 +4,7 @@ import dev.qruet.toolkit.ToolKit;
 import dev.qruet.toolkit.io.IOProfile;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 public abstract class Profile implements IOProfile {
@@ -19,12 +20,34 @@ public abstract class Profile implements IOProfile {
     }
 
     @Override
+    public File buildFile(String file, boolean replace) {
+        File fileObj = new File(dir, file + "." + ext);
+        if (replace && fileObj.exists())
+            fileObj.delete();
+
+        if (!fileObj.exists()) {
+            try {
+                File parent = fileObj.getParentFile(); // get parent directory
+                if (parent != null) // check if parent directory is specified/exists
+                    parent.mkdirs(); // build directories
+
+                fileObj.createNewFile(); // create file
+            } catch (IOException e) {
+                System.err.println("Failed to create log file, \"" + dir.getPath() + "/" + file + "." + ext + "\".");
+                return null;
+            }
+        }
+
+        return fileObj;
+    }
+
+    @Override
     public void setVerbose(Verbosity verbose) {
         this.verbose = verbose;
     }
 
     protected void tell(Verbosity priority, String message) {
-        if(!canTell(priority))
+        if (!canTell(priority))
             return;
 
         switch (priority) {

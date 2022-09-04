@@ -50,9 +50,8 @@ public class IOProfileBuilder {
     }
 
     public IOProfile build() {
-        if(extension == null) {
+        if (extension == null)
             throw new UnsupportedOperationException("Can't build IOProfile without a defined file extension type.");
-        }
         return type.buildProfile(dir, extension);
     }
 

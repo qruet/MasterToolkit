@@ -7,7 +7,7 @@ public enum IOType {
     BINARY;
 
     public IOProfile buildProfile(Object... params) {
-        return ProfileLibrary.buildProfile(toString());
+        return ProfileLibrary.buildProfile(toString(), params);
     }
 
 }

@@ -3,28 +3,31 @@ package dev.qruet.toolkit.command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiFunction;
 
 public abstract class Command {
 
-    protected final String alias;
-    private BiFunction<CommandSender, String[], Response> func1;
+    protected final String key; // primary alias
+    protected final String[] aliases;
+    private BiFunction<CommandSender, String[], Response> func1; // default function
     private BiFunction<Player, String[], Response> func2;
 
-    protected Command(String alias) {
-        this.alias = alias;
+    protected Command(String alias, String... aliases) {
+        this.key = alias;
+        this.aliases = aliases;
         this.func1 = this::run;
 
         for (Method m : this.getClass().getDeclaredMethods()) {
+            m.setAccessible(true);
+
             Class<?>[] parameters = m.getParameterTypes();
             if (parameters.length != 2 || parameters[0] != Player.class || parameters[1] != String[].class)
                 continue;
 
-            m.setAccessible(true);
             this.func2 = (player, strings) -> {
                 Response response = Response.UNKNOWN;
                 try {
@@ -35,11 +38,10 @@ public abstract class Command {
                 return response;
             };
 
-            for (Annotation an : m.getDeclaredAnnotations()) {
-                // TODO Build function profile based off of optional annotations:
-                //   * Permission Annotation
-                //   * Arguments Annotation
-            }
+            /*Arguments annotation = (Arguments) Arrays.stream(m.getAnnotations()).filter(an -> an.annotationType() == Arguments.class).findAny().orElse(null);
+            if (annotation == null)
+                return;
+            */
         }
     }
 
@@ -68,8 +70,12 @@ public abstract class Command {
      */
     protected abstract Response run(CommandSender sender, String[] args);
 
-    public String getAlias() {
-        return alias;
+    public String getKey() {
+        return key;
+    }
+
+    public List<String> getAliases() {
+        return Arrays.asList(aliases);
     }
 
     public enum Response {

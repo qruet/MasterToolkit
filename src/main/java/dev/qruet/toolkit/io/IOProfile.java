@@ -2,7 +2,7 @@ package dev.qruet.toolkit.io;
 
 import java.io.File;
 
-public interface IOProfile {
+public interface IOProfile extends Serializer, Deserializer {
 
     enum Extensions {
         YAML("yaml"), DATA("dat");
@@ -34,5 +34,7 @@ public interface IOProfile {
     }
 
     void setVerbose(Verbosity verbose);
+
+    File buildFile(String file, boolean replace);
 
 }
